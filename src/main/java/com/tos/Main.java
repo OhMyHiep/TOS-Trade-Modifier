@@ -2,6 +2,8 @@ package com.tos;
 
 import org.apache.poi.ss.usermodel.*;
 
+import com.tos.util.FileManager;
+
 public class Main {
     public static void main(String[] args) {
         FileManager fm=new FileManager();
@@ -10,7 +12,7 @@ public class Main {
         Container container= new Container();
         container.processOrders(sheet);
         container.processTrades();
-        // container.printTrades();
+        container.printTrades();
         fm.writeTrades(container.getTrades());
         // container.printOrders();
         fm.close();

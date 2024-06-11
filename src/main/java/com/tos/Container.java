@@ -9,6 +9,9 @@ import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 
+import com.tos.Domain.Order;
+import com.tos.Domain.Trade;
+
 import lombok.Getter;
 
 @Getter
@@ -18,7 +21,7 @@ public class Container {
     private ArrayList<Trade> trades;
 
 
-
+    //Turn Spreadsheet orders into a Java Order Object
     public void processOrders(Sheet sheet){
 
             // Create a DataFormatter to format cell values
@@ -32,8 +35,8 @@ public class Container {
                 int quantity = Integer.parseInt(dataFormatter.formatCellValue(row.getCell(3)));
                 String symbol = dataFormatter.formatCellValue(row.getCell(5));
                 double netPrice = Double.parseDouble(dataFormatter.formatCellValue(row.getCell(10)));
-
-                
+                String type = dataFormatter.formatCellValue(row.getCell(8));
+                if (type.equals("PUT") || type.equals("CALL")) quantity*=100;
                 if(map.getOrDefault(symbol, null)==null){
                     ArrayList<Order> orders= new ArrayList<>();  
                     map.put(symbol, orders);
@@ -44,6 +47,7 @@ public class Container {
                     .quantity(quantity)
                     .symbol(symbol)
                     .price(netPrice)
+                    .type(type)
                     .build());
              }
 
@@ -51,6 +55,7 @@ public class Container {
 
 
 
+        // Turn Order objects into Trade Objects
         public void processTrades(){
             trades= new ArrayList<>();
             for (String k: map.keySet()){
@@ -83,6 +88,7 @@ public class Container {
                             .quantity(tempEntryQty)
                             .Date(entryDate)
                             .time(entryTime)
+                            .type(o.getType())
                             .build()
                             );
                         tempAvgEntryPrice=0.0;
