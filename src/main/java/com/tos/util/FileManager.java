@@ -6,13 +6,18 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import org.apache.poi.ss.usermodel.ClientAnchor;
+import org.apache.poi.ss.usermodel.Drawing;
+import org.apache.poi.ss.usermodel.Picture;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-
+import org.apache.poi.ss.usermodel.ClientAnchor.AnchorType;
 import com.tos.Domain.Trade;
-
+import org.apache.poi.util.IOUtils;
+import lombok.Getter;
+@Getter
 public class FileManager {
      
 
@@ -22,8 +27,10 @@ public class FileManager {
         private FileInputStream fis;
         private Workbook workbook;
 
-
-        public Sheet open(){
+        public Workbook getWorkbook(){
+            return workbook;
+        }
+        public void open(){
             try {
                  // Create a FileInputStream to read the Excel file
                 fis = new FileInputStream(new File(filePath));
@@ -33,36 +40,30 @@ public class FileManager {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-             // Get the first sheet
-             return workbook.getSheetAt(0);
         }
 
         public void writeTrades(ArrayList<Trade> tradeList){
-            Sheet sheet = workbook.getSheet("TradeData");
+               Sheet sheet = workbook.getSheet("TradeData");
 
             // Create the header row
             Row headerRow = sheet.createRow(0);
-            headerRow.createCell(0).setCellValue("Type");
-            headerRow.createCell(1).setCellValue("Time");
-            headerRow.createCell(5).setCellValue("Date");
-            headerRow.createCell(6).setCellValue("Symbol");
-            headerRow.createCell(7).setCellValue("Quantity");
-            headerRow.createCell(8).setCellValue("Entry Price");
-            headerRow.createCell(10).setCellValue("Quantity2");
-            headerRow.createCell(11).setCellValue("Exit Price");
+            headerRow.createCell(0).setCellValue("Time");
+            headerRow.createCell(1).setCellValue("Date");
+            headerRow.createCell(2).setCellValue("Symbol");
+            headerRow.createCell(3).setCellValue("Quantity");
+            headerRow.createCell(4).setCellValue("Entry Price");
+            headerRow.createCell(5).setCellValue("Exit Price");
 
             // Create data rows for each trade in the list
             int rowIndex = 1;
             for (Trade trade : tradeList) {
                 Row dataRow = sheet.createRow(rowIndex++);
-                dataRow.createCell(0).setCellValue(trade.getType());
-                dataRow.createCell(1).setCellValue(trade.getTime());
-                dataRow.createCell(5).setCellValue(trade.getDate());
-                dataRow.createCell(6).setCellValue(trade.getSymbol());
-                dataRow.createCell(7).setCellValue(trade.getQuantity());
-                dataRow.createCell(8).setCellValue(trade.getEntryPrice());
-                dataRow.createCell(10).setCellValue(trade.getQuantity());
-                dataRow.createCell(11).setCellValue(trade.getExitPrice());
+                dataRow.createCell(0).setCellValue(trade.getTime());
+                dataRow.createCell(1).setCellValue(trade.getDate());
+                dataRow.createCell(2).setCellValue(trade.getSymbol());
+                dataRow.createCell(3).setCellValue(trade.getQuantity());
+                dataRow.createCell(4).setCellValue(trade.getEntryPrice());
+                dataRow.createCell(5).setCellValue(trade.getExitPrice());
             }
 
             // Adjust column widths for better visibility
@@ -94,6 +95,52 @@ public class FileManager {
                 e.printStackTrace();
             }
                
+        }
+
+        public void readImage(String path){
+            path= "src/main/resources/8:14:24 GNLN.png";
+            File file = new File(path);
+            if (file.exists()){
+                System.out.println("exist");
+                Sheet sheet = workbook.getSheet("Images");
+                Row row=sheet.getRow(1);
+                row.createCell(2).setCellValue(path);
+                try {
+                    FileOutputStream fileOut = new FileOutputStream("src/main/resources/Trades.xlsx");
+                    FileInputStream imageInput = new FileInputStream(file);
+                    byte[] imageBytes = IOUtils.toByteArray(imageInput);
+
+                    int pictureIdx = workbook.addPicture(imageBytes, Workbook.PICTURE_TYPE_PNG);
+                    Drawing<?> drawing = sheet.createDrawingPatriarch();
+
+                    // Create an anchor that is attached to a specific cell
+                    ClientAnchor anchor = workbook.getCreationHelper().createClientAnchor();
+                    anchor.setAnchorType(AnchorType.MOVE_AND_RESIZE);
+                    
+                    // Set top-left corner of the image to cell (row 1, column 2)
+                    anchor.setCol1(2);  // Column C (0-based index, so 2 is column C)
+                    anchor.setRow1(1);  // Row 2 (0-based index, so 1 is row 2)
+
+                    // Insert the image
+                    Picture picture = drawing.createPicture(anchor, pictureIdx);
+
+                    // Optionally resize the image to fit in the cell
+                    // picture.resize();
+                    
+                    workbook.write(fileOut);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    try {
+                        workbook.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            else{
+                System.out.println("not");
+            }
         }
 
     }

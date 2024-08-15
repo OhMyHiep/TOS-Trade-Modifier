@@ -1,4 +1,4 @@
-package com.tos;
+package com.tos.Domain;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,9 +9,6 @@ import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 
-import com.tos.Domain.Order;
-import com.tos.Domain.Trade;
-
 import lombok.Getter;
 
 @Getter
@@ -19,7 +16,7 @@ public class Container {
    
     private HashMap<String,ArrayList<Order>> map= new HashMap<>(); 
     private ArrayList<Trade> trades;
-
+    private ArrayList<Order> imageNames; 
 
     //Turn Spreadsheet orders into a Java Order Object
     public void processOrders(Sheet sheet){
@@ -51,6 +48,25 @@ public class Container {
                     .build());
              }
 
+    }
+
+
+    public void processImageName(Sheet sheet){
+        DataFormatter dataFormatter = new DataFormatter();
+        for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+            Row row = sheet.getRow(i);
+            // Use DataFormatter to get formatted cell values
+            String execTime = dataFormatter.formatCellValue(row.getCell(0));
+            String symbol = dataFormatter.formatCellValue(row.getCell(1));
+            imageNames= new ArrayList<>();
+            imageNames.add(
+            Order.builder()
+                    .execTime(execTime)
+                    .symbol(symbol)
+                    .build());
+            // System.out.println(imageNames.get(0).toString()); 
+        }
+            
     }
 
 
